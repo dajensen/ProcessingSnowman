@@ -15,3 +15,8 @@ Then open your web browser and type this in your address bar:
 http://localhost:8000/snowman.html
 
 You should see the snowman.  Change the file called "snowman.pde" and hit the "Refresh" button in your browser to see your changes.
+
+## Another web server
+For anyone using a Chromebook, just run the "Web Server for Chrome" app.  You'll need to tell it which directory contains the files, and you'll need to use this URL instead:
+
+http://localhost:8887/snowman.html
