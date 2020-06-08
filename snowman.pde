@@ -4,7 +4,11 @@
 const MAX_WIDTH = 400;
 const MAX_HEIGHT = 400;
 
+var frame = 0;
+
 size(MAX_WIDTH, MAX_HEIGHT);
+
+frameRate(60);
 
 function ground() {
     // ground
@@ -71,24 +75,14 @@ function snowman() {
 
 // This is the timer that calculates where the sun should be, based on how long the program has been running.
 function calculate_sun_position() {
-    // Get the count of milliseconds since the program started
-    let curr_time = millis();
+    // Now just shift the sun one pixel to the right.
+    // Store the "sun position" in a global variable (not inside a function)
+    // so it will still be there next time you come back.
+    sunpos++;
 
-    // Every 10 milliseconds, do something.
-    if(curr_time - prev_time > 10) {
-        // Before you actually do anything, save the current time
-        // So you'll be able to calculate the correct time difference next time you get here.
-        prev_time = curr_time;
-
-        // Now just shift the sun one pixel to the right.
-        // Store the "sun position" in a global variable (not inside a function) 
-        // so it will still be there next time you come back.
-        sunpos++;
-
-        // And if the sun runs off the right side of the scene, move it back to the left side.
-        if(sunpos > MAX_WIDTH)
-            sunpos = 0;
-    }
+    // And if the sun runs off the right side of the scene, move it back to the left side.
+    if(sunpos > MAX_WIDTH)
+        sunpos = 0;
 }
 
 // Global variables
@@ -104,6 +98,8 @@ let sunpos = 0;
 //     2. Then draw the background over everything, to erase what was there before
 //     3. And then draw the scene again with things in their new positions.
 draw = function() {
+    frame = frame + 1;
+
     calculate_sun_position();
 
     // Filling the background erases what was there before.
