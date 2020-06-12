@@ -4,7 +4,18 @@
 const MAX_WIDTH = 400;
 const MAX_HEIGHT = 400;
 
+const SNOWFLAKE_MOVEMENT_X = -1;
+const SNOWFLAKE_MOVEMENT_Y = 4;
+const SNOWFLAKE_CREATION_RATE = 10;
+
+// Global variables
+let frame = 0;
+let sunpos = 0;
+let snowflakes = [];
+
 size(MAX_WIDTH, MAX_HEIGHT);
+
+frameRate(60);
 
 function ground() {
     // ground
@@ -69,31 +80,62 @@ function snowman() {
     line(240, 200, 300, 150);
 }
 
+function drawSnowflake(snowflake) {
+    // This function gets called once for each snowflake,
+    // And the location of the ellipse is *dynamic* based on the position
+    // of each snowflake.
+    fill(255, 255, 255);
+    strokeWeight(1);
+    ellipse(snowflake.x, snowflake.y, 10, 10);
+}
+
 // This is the timer that calculates where the sun should be, based on how long the program has been running.
 function calculate_sun_position() {
-    // Get the count of milliseconds since the program started
-    let curr_time = millis();
+    // Now just shift the sun one pixel to the right.
+    // Store the "sun position" in a global variable (not inside a function)
+    // so it will still be there next time you come back.
+    sunpos++;
 
-    // Every 10 milliseconds, do something.
-    if(curr_time - prev_time > 10) {
-        // Before you actually do anything, save the current time
-        // So you'll be able to calculate the correct time difference next time you get here.
-        prev_time = curr_time;
+    // And if the sun runs off the right side of the scene, move it back to the left side.
+    if(sunpos > MAX_WIDTH)
+        sunpos = 0;
+}
 
-        // Now just shift the sun one pixel to the right.
-        // Store the "sun position" in a global variable (not inside a function) 
-        // so it will still be there next time you come back.
-        sunpos++;
-
-        // And if the sun runs off the right side of the scene, move it back to the left side.
-        if(sunpos > MAX_WIDTH)
-            sunpos = 0;
+function animateSnowflakes() {
+    // Move every snowflake just a little during this frame
+    for (let i = 0; i < snowflakes.length; i++) {
+        const snowflake = snowflakes[i];
+        snowflake.x = snowflake.x + SNOWFLAKE_MOVEMENT_X;
+        snowflake.y = snowflake.y + SNOWFLAKE_MOVEMENT_Y;
     }
 }
 
-// Global variables
-let prev_time = 0;
-let sunpos = 0;
+function deleteHiddenSnowflakes() {
+    const visibleSnowflakes = [];
+
+    for (let i = 0; i < snowflakes.length; i++) {
+        const currentSnowflake = snowflakes[i];
+        if (currentSnowflake.y >= 0) {
+            // Only keep a snowflake if it is visible!
+            visibleSnowflakes.push(currentSnowflake);
+        }
+    }
+
+    // Swap out the global `snowflakes` variable with our new array
+    snowflakes = visibleSnowflakes;
+}
+
+function createSnowflake() {
+    const newSnowflake = {
+        // Choose a random position from left to right
+        x: Math.random() * 450,
+
+        // Start at the top
+        y: 0
+    };
+
+    snowflakes.push(newSnowflake);
+}
 
 // *************************************************************
 // This is the entry point
@@ -104,6 +146,19 @@ let sunpos = 0;
 //     2. Then draw the background over everything, to erase what was there before
 //     3. And then draw the scene again with things in their new positions.
 draw = function() {
+    frame = frame + 1;
+
+    // This is the `modulo` operator, which means the remainder of a long divison.
+    // So this part basically means:
+    // "if the frame is a multiple of 10, create a snowflake"
+    if (frame % SNOWFLAKE_CREATION_RATE === 0) {
+        createSnowflake();
+    }
+
+    animateSnowflakes();
+
+    deleteHiddenSnowflakes();
+
     calculate_sun_position();
 
     // Filling the background erases what was there before.
@@ -116,4 +171,9 @@ draw = function() {
     // will cover up the sun, so it looks like the sun is behind the snowman.
     sun(sunpos, 57);
     snowman();
+
+    // Draw each of the snowflakes
+    for (var i = 0; i < snowflakes.length; i++) {
+        drawSnowflake(snowflakes[i]);
+    }
 }
