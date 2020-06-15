@@ -16,32 +16,35 @@ let sun_x = 0;
 let sun_y = 57;
 let sun_click = 0;
 let snowflakes = [];
+let sun_color = {
+    r: 247,
+    g: 0,
+    b: 0
+}
 
 size(MAX_WIDTH, MAX_HEIGHT);
 
 frameRate(60);
 
-function ground() {
+void ground() {
     // ground
-    strokeWeight(1);
-    stroke(255, 255, 255);
     fill(255, 255, 255);
     rect(0, 350, 400, 50); 
 }
 
-function sun(x, y) {
+void sun(x, y) {
     //if (sun_click % 2) {
     //    dancer_sun(x, y);
     //} else {
         //sun
-        stroke(247, 255, 0);
-        fill(247, 255, 0);
+        noStroke();
+        fill(sun_color.r, sun_color.g, sun_color.b);
         strokeWeight(1);
         ellipse (x, y, SUN_DIAMETER, SUN_DIAMETER);
     //}
 }
 
-function face(x, y) {
+void face(x, y) {
     // Switch to red outlines
     stroke(255, 0, 0);
     fill(255, 0, 0);
@@ -52,7 +55,7 @@ function face(x, y) {
     ellipse(x, y + 10, 5, 5);
 }
 
-function hat(x_center, y_bottom, brim_width, crown_width, crown_height) {
+void hat(x_center, y_bottom, brim_width, crown_width, crown_height) {
     strokeWeight(3);
     fill(0, 0, 0);
     line(x_center - brim_width / 2, y_bottom, 
@@ -60,7 +63,7 @@ function hat(x_center, y_bottom, brim_width, crown_width, crown_height) {
     rect(x_center - crown_width / 2, y_bottom - crown_height, crown_width, crown_height);
 }
 
-function snowman() {
+void snowman() {
     // bottom
     fill(255, 255, 255);
     stroke(0, 0, 0);
@@ -88,7 +91,7 @@ function snowman() {
     line(240, 200, 300, 150);
 }
 
-function drawSnowflake(snowflake) {
+void drawSnowflake(snowflake) {
     // This function gets called once for each snowflake,
     // And the location of the ellipse is *dynamic* based on the position
     // of each snowflake.
@@ -98,7 +101,7 @@ function drawSnowflake(snowflake) {
 }
 
 // This is the timer that calculates where the sun should be, based on how long the program has been running.
-function calculate_sun_position() {
+void calculate_sun_position() {
     // Now just shift the sun one pixel to the right.
     // Store the "sun position" in a global variable (not inside a function)
     // so it will still be there next time you come back.
@@ -109,7 +112,7 @@ function calculate_sun_position() {
         sun_x = 0;
 }
 
-function animateSnowflakes() {
+void animateSnowflakes() {
     // Move every snowflake just a little during this frame
     for (let i = 0; i < snowflakes.length; i++) {
         const snowflake = snowflakes[i];
@@ -118,7 +121,7 @@ function animateSnowflakes() {
     }
 }
 
-function deleteHiddenSnowflakes() {
+void deleteHiddenSnowflakes() {
     const visibleSnowflakes = [];
 
     for (let i = 0; i < snowflakes.length; i++) {
@@ -133,7 +136,7 @@ function deleteHiddenSnowflakes() {
     snowflakes = visibleSnowflakes;
 }
 
-function createSnowflake() {
+void createSnowflake() {
     const newSnowflake = {
         // Choose a random position from left to right
         x: Math.random() * 450,
@@ -153,7 +156,7 @@ function createSnowflake() {
 //     1. Calculate the new positions here, based on how long the program has been running 
 //     2. Then draw the background over everything, to erase what was there before
 //     3. And then draw the scene again with things in their new positions.
-draw = function() {
+void draw() {
     frame = frame + 1;
 
     // This is the `modulo` operator, which means the remainder of a long divison.
@@ -186,9 +189,11 @@ draw = function() {
     }
 }
 
-function mousePressed() {
+void mousePressed() {
+    console.log("Clicked");
     console.log(dist(mouseX, mouseY, sun_x, sun_y) / 2);
-    if ((dist(mouseX, mouseY, sun_x, sun_y) / 2) <= SUN_DIAMETER) {
+    if ((dist(mouseX, mouseY, sun_x, sun_y)) <= SUN_DIAMETER / 2) {
         ++sun_click;
+        sun_color.g = sun_color.g == 255 ? 0 : 255;    
     }
 }
