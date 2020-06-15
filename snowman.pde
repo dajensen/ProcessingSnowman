@@ -9,6 +9,7 @@ const SUN_DIAMETER = 75;
 const SNOWFLAKE_MOVEMENT_X = -1;
 const SNOWFLAKE_MOVEMENT_Y = 4;
 const SNOWFLAKE_CREATION_RATE = 10;
+PShape gizzard_croc;
 
 // Global variables
 let frame = 0;
@@ -18,13 +19,14 @@ let sun_click = 0;
 let snowflakes = [];
 let sun_color = {
     r: 247,
-    g: 0,
+    g: 255,
     b: 0
 }
+let dark_sun = false;
 
 size(MAX_WIDTH, MAX_HEIGHT);
-
 frameRate(60);
+gizzard_croc= loadShape("TestImage.svg");
 
 void ground() {
     // ground
@@ -151,11 +153,12 @@ void createSnowflake() {
 // *************************************************************
 // This is the entry point
 // *************************************************************
-// This function gets called all the time, as fast as possible.
+// This function gets called all the time, at a rate defined by the frameRate(60) function call at the top of this file.
 // So if you want to animate something, just do this:
 //     1. Calculate the new positions here, based on how long the program has been running 
 //     2. Then draw the background over everything, to erase what was there before
 //     3. And then draw the scene again with things in their new positions.
+// Because we set the frame rate to 60, this function is executed every 1/60 second.
 void draw() {
     frame = frame + 1;
 
@@ -181,12 +184,16 @@ void draw() {
     // So if we draw it first, then draw the snowman, the snowman
     // will cover up the sun, so it looks like the sun is behind the snowman.
     sun(sun_x, sun_y);
+    if(dark_sun)
+        shape(gizzard_croc, sun_x - SUN_DIAMETER / 2, sun_y - SUN_DIAMETER / 2, 80, 80);
+
     snowman();
 
     // Draw each of the snowflakes
     for (var i = 0; i < snowflakes.length; i++) {
         drawSnowflake(snowflakes[i]);
     }
+
 }
 
 void mousePressed() {
@@ -194,6 +201,10 @@ void mousePressed() {
     console.log(dist(mouseX, mouseY, sun_x, sun_y) / 2);
     if ((dist(mouseX, mouseY, sun_x, sun_y)) <= SUN_DIAMETER / 2) {
         ++sun_click;
-        sun_color.g = sun_color.g == 255 ? 0 : 255;    
+
+        // Toggle dark sun mode
+        dark_sun = !dark_sun;
+        sun_color.g = dark_sun ? 0 : 255;   // If the sun is dark, set the Green component of the color to zero
     }
 }
+
