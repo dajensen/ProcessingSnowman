@@ -4,13 +4,17 @@
 const MAX_WIDTH = 400;
 const MAX_HEIGHT = 400;
 
+const SUN_DIAMETER = 75;
+
 const SNOWFLAKE_MOVEMENT_X = -1;
 const SNOWFLAKE_MOVEMENT_Y = 4;
 const SNOWFLAKE_CREATION_RATE = 10;
 
 // Global variables
 let frame = 0;
-let sunpos = 0;
+let sun_x = 0;
+let sun_y = 57;
+let sun_click = 0;
 let snowflakes = [];
 
 size(MAX_WIDTH, MAX_HEIGHT);
@@ -26,11 +30,15 @@ function ground() {
 }
 
 function sun(x, y) {
-    //sun
-    stroke(247, 255, 0);
-    fill(247, 255, 0);
-    strokeWeight(1);
-    ellipse (x, y, 75, 75);
+    //if (sun_click % 2) {
+    //    dancer_sun(x, y);
+    //} else {
+        //sun
+        stroke(247, 255, 0);
+        fill(247, 255, 0);
+        strokeWeight(1);
+        ellipse (x, y, SUN_DIAMETER, SUN_DIAMETER);
+    //}
 }
 
 function face(x, y) {
@@ -94,11 +102,11 @@ function calculate_sun_position() {
     // Now just shift the sun one pixel to the right.
     // Store the "sun position" in a global variable (not inside a function)
     // so it will still be there next time you come back.
-    sunpos++;
+    sun_x++;
 
     // And if the sun runs off the right side of the scene, move it back to the left side.
-    if(sunpos > MAX_WIDTH)
-        sunpos = 0;
+    if(sun_x > MAX_WIDTH)
+        sun_x = 0;
 }
 
 function animateSnowflakes() {
@@ -169,11 +177,18 @@ draw = function() {
     // I wanted the sun to go behind the snowman, not in front.
     // So if we draw it first, then draw the snowman, the snowman
     // will cover up the sun, so it looks like the sun is behind the snowman.
-    sun(sunpos, 57);
+    sun(sun_x, sun_y);
     snowman();
 
     // Draw each of the snowflakes
     for (var i = 0; i < snowflakes.length; i++) {
         drawSnowflake(snowflakes[i]);
+    }
+}
+
+function mousePressed() {
+    console.log(dist(mouseX, mouseY, sun_x, sun_y) / 2);
+    if ((dist(mouseX, mouseY, sun_x, sun_y) / 2) <= SUN_DIAMETER) {
+        ++sun_click;
     }
 }
