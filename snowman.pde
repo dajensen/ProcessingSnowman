@@ -14,7 +14,7 @@ const SNOWFLAKE_CREATION_RATE = 10;
 let frame = 0;
 let sun_x = 0;
 let sun_y = 57;
-let sun_click = 0;
+let sunClick = 0;
 let snowflakes = [];
 
 size(MAX_WIDTH, MAX_HEIGHT);
@@ -30,15 +30,15 @@ function ground() {
 }
 
 function sun(x, y) {
-    //if (sun_click % 2) {
-    //    dancer_sun(x, y);
-    //} else {
+    if (sunClick % 2) {
+        dancerSun(x, y);
+    } else {
         //sun
         stroke(247, 255, 0);
         fill(247, 255, 0);
         strokeWeight(1);
         ellipse (x, y, SUN_DIAMETER, SUN_DIAMETER);
-    //}
+    }
 }
 
 function face(x, y) {
@@ -145,6 +145,12 @@ function createSnowflake() {
     snowflakes.push(newSnowflake);
 }
 
+mouseClicked = function() {
+    if ((dist(mouseX, mouseY, sun_x, sun_y)*2) <= SUN_DIAMETER) {
+        ++sunClick;
+    }
+}
+
 // *************************************************************
 // This is the entry point
 // *************************************************************
@@ -183,12 +189,5 @@ draw = function() {
     // Draw each of the snowflakes
     for (var i = 0; i < snowflakes.length; i++) {
         drawSnowflake(snowflakes[i]);
-    }
-}
-
-function mousePressed() {
-    console.log(dist(mouseX, mouseY, sun_x, sun_y) / 2);
-    if ((dist(mouseX, mouseY, sun_x, sun_y) / 2) <= SUN_DIAMETER) {
-        ++sun_click;
     }
 }
