@@ -1,8 +1,3 @@
-// This is your own web page, so you can make this BIG if you want to.
-// But if you increase this, you'll probably want to change the position
-// and size of the other objects.
-const MAX_WIDTH = 400;
-const MAX_HEIGHT = 400;
 
 const SUN_DIAMETER = 75;
 
@@ -16,7 +11,6 @@ let frame = 0;
 let sun_x = 0;
 let sun_y = 57;
 let sun_click = 0;
-let snowflakes = [];
 let sun_color = {
     r: 247,
     g: 255,
@@ -30,6 +24,7 @@ gizzard_croc= loadShape("TestImage.svg");
 
 void ground() {
     // ground
+    noStroke();
     fill(255, 255, 255);
     rect(0, 350, 400, 50); 
 }
@@ -93,13 +88,22 @@ void snowman() {
     line(240, 200, 300, 150);
 }
 
-void drawSnowflake(snowflake) {
+void drawSnowflake(x, y) {
     // This function gets called once for each snowflake,
     // And the location of the ellipse is *dynamic* based on the position
     // of each snowflake.
     fill(255, 255, 255);
     strokeWeight(1);
-    ellipse(snowflake.x, snowflake.y, 10, 10);
+    ellipse(x, y, 10, 10);
+}
+
+void drawOobleck(x, y) {
+    // This function gets called once for each snowflake,
+    // And the location of the ellipse is *dynamic* based on the position
+    // of each snowflake.
+    fill(25, 192, 25);
+    strokeWeight(1);
+    ellipse(x, y, 10, 10);
 }
 
 // This is the timer that calculates where the sun should be, based on how long the program has been running.
@@ -114,41 +118,6 @@ void calculate_sun_position() {
         sun_x = 0;
 }
 
-void animateSnowflakes() {
-    // Move every snowflake just a little during this frame
-    for (let i = 0; i < snowflakes.length; i++) {
-        const snowflake = snowflakes[i];
-        snowflake.x = snowflake.x + SNOWFLAKE_MOVEMENT_X;
-        snowflake.y = snowflake.y + SNOWFLAKE_MOVEMENT_Y;
-    }
-}
-
-void deleteHiddenSnowflakes() {
-    const visibleSnowflakes = [];
-
-    for (let i = 0; i < snowflakes.length; i++) {
-        const currentSnowflake = snowflakes[i];
-        if (currentSnowflake.y >= 0) {
-            // Only keep a snowflake if it is visible!
-            visibleSnowflakes.push(currentSnowflake);
-        }
-    }
-
-    // Swap out the global `snowflakes` variable with our new array
-    snowflakes = visibleSnowflakes;
-}
-
-void createSnowflake() {
-    const newSnowflake = {
-        // Choose a random position from left to right
-        x: Math.random() * 450,
-
-        // Start at the top
-        y: 0
-    };
-
-    snowflakes.push(newSnowflake);
-}
 
 // *************************************************************
 // This is the entry point
@@ -166,12 +135,8 @@ void draw() {
     // So this part basically means:
     // "if the frame is a multiple of 10, create a snowflake"
     if (frame % SNOWFLAKE_CREATION_RATE === 0) {
-        createSnowflake();
+        createSnowflake(Math.random() * MAX_WIDTH);
     }
-
-    animateSnowflakes();
-
-    deleteHiddenSnowflakes();
 
     calculate_sun_position();
 
@@ -189,16 +154,18 @@ void draw() {
 
     snowman();
 
-    // Draw each of the snowflakes
-    for (var i = 0; i < snowflakes.length; i++) {
-        drawSnowflake(snowflakes[i]);
+    // Draw all of the snowflakes
+    if(typeof(draw_objects.snowflakes) !== 'undefined') {
+        let flakes = draw_objects.snowflakes;
+        for (int i = 0; i < flakes.length; i++) {
+            drawSnowflake(flakes[i].position.x, flakes[i].position.y);
+        }
     }
-
 }
 
 void mousePressed() {
-    console.log("Clicked");
-    console.log(dist(mouseX, mouseY, sun_x, sun_y) / 2);
+//    console.log("Clicked");
+//    console.log(dist(mouseX, mouseY, sun_x, sun_y) / 2);
     if ((dist(mouseX, mouseY, sun_x, sun_y)) <= SUN_DIAMETER / 2) {
         ++sun_click;
 

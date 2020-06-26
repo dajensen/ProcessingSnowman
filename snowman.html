@@ -3,9 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Snowman</title>
-
     <style type="text/css">
 
 body {
@@ -19,9 +17,96 @@ canvas {
 }
 
     </style>
+    <script>
+        // Any variables and functions define here in the global scope are also accessible from inside Processing's .pde files.
+        // But variables that are not in the global scope won't be accessible from any .pde file.
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 400;
+
+        var processingInstance;
+        var draw_objects = {snowflakes: []};
+        let lastFrame;
+        var engine, world;
+
+        function createSnowflake(x) {
+            let obj = Matter.Bodies.circle(x, 0, 7, {
+                density: 0.04,
+                friction: 0.01,
+                frictionAir: 0.1,
+                restitution: 0.8
+            });
+            draw_objects.snowflakes.push(obj);
+            Matter.World.add(world, obj);
+        }
+
+        function removeUnusedObjects() {
+            // Remove any objects that are out of bounds.
+            // This keeps the number of objects in a steady state - we create new objects and delete old ones at pretty much the same rate.
+            // If we didn't do this, we would eventually run out of memory and bog down, and eventually crash.
+
+            // This loop deals with the objects that are not arrays.
+            for(key in draw_objects) {
+                if(typeof(draw_objects[key].position) !== 'undefined') {
+                    if(draw_objects[key].position.y > MAX_HEIGHT) {             // Or too high or off screen left or right.
+                        Matter.World.remove(world, draw_objects[key]);
+                        delete draw_objects[key];
+                    }
+                }
+            }
+
+            // But the snowflakes are not a single item, they are an array of items.
+            draw_objects.snowflakes.forEach((flake, index) => {
+                if(flake.position.y > MAX_HEIGHT) {
+                        Matter.World.remove(world, flake);
+                        draw_objects.snowflakes.splice(index, 1); // deletes one entry at snowflakes[index]
+                }
+            })
+        }
+
+        function renderFrame(timestamp) {
+            // This checks to see if it's the first time this function has been called.
+            // because if lastFrame has not been defined yet, we need to define it now.
+            // Otherwise the calculation of elapsed time makes no sense (would be subtracting an undefined value)
+            if (lastFrame !== undefined) {
+                // timestamp is the current time, passed into this function because it's a callback for the requestAnimationFrame() function
+                const elapsed = timestamp - lastFrame;
+
+                // Tell the Matter.js library to recalculate the position of everything, given how much time has elapsed since the last calculation.
+                Matter.Engine.update(engine, elapsed);
+
+                // Call Processing to have it draw the frame with everything in its new location.
+                processingInstance.redraw();
+
+                // Clean up things that aren't needed anymore.
+                removeUnusedObjects();
+            }                
+
+            lastFrame = timestamp;
+            window.requestAnimationFrame(renderFrame); // This schedules renderFrame() to be called again as soon as possible
+        }
+
+        window.onload = () => {
+            // Get the Process instance that is already running as a global because we included processing.js
+            processingInstance = Processing.getInstanceById('sketch');
+
+            // Turn off the processing loop.  It would use a fixed frame rate, which is not the best for us anymore 
+            // because the physics calculations can take a variable amount of time.  Instead we will use the renderFrame() function defined
+            // below, which uses the elapsed time to calculate where each body should be at the time when it gets drawn. 
+            // This means we will need to set up our own mechanism for drawing the screen periodically, which is what the renderFrame() function does.
+            processingInstance.noLoop()
+
+            // Now set up matter.js
+            engine = Matter.Engine.create();
+            world = engine.world;
+
+            // This schedules renderFrame() to be called for the first time.
+            window.requestAnimationFrame(renderFrame);
+        } 
+    </script>
   </head>
   <body>
     <script src="processing-1.4.8.dev.js"></script>
-    <canvas data-processing-sources="snowman.pde"></canvas>
+    <script src="matter.js"></script>
+    <canvas id="sketch" data-processing-sources="snowman.pde"></canvas>
   </body>
 </html>
