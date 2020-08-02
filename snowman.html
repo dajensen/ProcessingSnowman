@@ -24,18 +24,106 @@ canvas {
         const MAX_HEIGHT = 400;
 
         var processingInstance;
-        var draw_objects = {snowflakes: []};
-        let lastFrame;
+        var draw_objects = [];
+        let lastFrame, frameId = 0;
         var engine, world;
 
-        function createSnowflake(x) {
-            let obj = Matter.Bodies.circle(x, 0, 7, {
-                density: 0.04,
-                friction: 0.01,
-                frictionAir: 0.1,
-                restitution: 0.8
+        function rotateAroundCenter(x, y, rads) {
+            let rv = {
+                x: x * Math.cos(rads) - y * Math.sin(rads), 
+                y: x * Math.sin(rads) + y * Math.cos(rads)}
+            return rv;
+        }
+
+        function fallApart(parentobj) {
+            parentobj.bodies.forEach((obj)=>{
+                if(obj.label !== 'ground')
+//                    Matter.Body.setStatic(obj, false);
+                    Matter.Sleeping.set(obj, false);
+            })
+            parentobj.composites.forEach((comp)=>{
+                fallApart(comp)
+            })
+        }
+
+        function createSnowball(x,y,r,opts) {
+            let options = {
+                label: "snowball",
+                isSleeping: true,
+                density: 0.6,
+                friction: 0.2,
+                restitution: 0.0001,
+                color: {
+                   fill: {r: 255, g: 255, b: 255},
+                    stroke: {r: 0, g: 0, b: 0}
+                }
+            };
+
+            if(typeof(options) !== 'undefined') {
+                Object.assign(options, opts);
+            }
+
+            let obj = Matter.Bodies.circle(x, y, r, options, 100);
+            addToWorld(obj);
+        }
+
+        function createRectangle(x, y, width, height, opts) {
+            let options = {
+                isSleeping: true,
+                density: 0.1,
+                restitution: 0.01,
+                friction: 0.8,
+                color: {
+                    fill: {r: 255, g: 255, b: 255},
+                    stroke: {r: 255, g: 255, b: 255}
+                }
+            }
+
+            if(typeof(opts) !== 'unknown') {
+                Object.assign(options, opts)
+            }
+
+            var obj = Matter.Bodies.rectangle(x, y, width, height, options);
+            addToWorld(obj);
+        }
+
+        function createHat(x_center, y_bottom, brim_width, crownWidth, crownHeight) {
+
+            let brimHeight = 3;
+            let brim = Matter.Bodies.rectangle(x_center, y_bottom, crownWidth * 2, brimHeight, {
+                label: "hat_brim",
+                isSleeping: true,
+                restitution: 0.01,
+                color: {
+                    fill: {r: 0, g: 0, b: 0},
+                    stroke: {r: 0, g: 0, b: 0}
+                }
             });
-            draw_objects.snowflakes.push(obj);
+
+            var crown = Matter.Bodies.rectangle(x_center, y_bottom - crownHeight / 2, crownWidth, crownHeight, {
+                label: "hat_crown",
+                isSleeping: true,
+                color: {
+                    fill: {r: 0, g: 0, b: 0},
+                    stroke: {r: 0, g: 0, b: 0}
+                }
+            });
+            var constraint = Matter.Constraint.create({
+                bodyA: brim,
+                bodyB: crown,
+            });
+
+            let hat = Matter.Composite.create({
+                label: "hat",
+                bodies: [brim, crown],
+                constraints: [constraint]
+            });
+            addToWorld(hat);
+        }
+
+
+        function addToWorld(obj) {
+            draw_objects.push(obj);
             Matter.World.add(world, obj);
         }
 
@@ -44,23 +132,18 @@ canvas {
             // This keeps the number of objects in a steady state - we create new objects and delete old ones at pretty much the same rate.
             // If we didn't do this, we would eventually run out of memory and bog down, and eventually crash.
 
-            // This loop deals with the objects that are not arrays.
-            for(key in draw_objects) {
-                if(typeof(draw_objects[key].position) !== 'undefined') {
-                    if(draw_objects[key].position.y > MAX_HEIGHT) {             // Or too high or off screen left or right.
-                        Matter.World.remove(world, draw_objects[key]);
-                        delete draw_objects[key];
-                    }
-                }
-            }
-
-            // But the snowflakes are not a single item, they are an array of items.
-            draw_objects.snowflakes.forEach((flake, index) => {
-                if(flake.position.y > MAX_HEIGHT) {
-                        Matter.World.remove(world, flake);
-                        draw_objects.snowflakes.splice(index, 1); // deletes one entry at snowflakes[index]
+            draw_objects.forEach((obj, index) => {
+                if(typeof(obj.position) !== 'undefined') {
+                    if(obj.position.y > MAX_HEIGHT) {
+                            Matter.World.remove(world, obj);
+                            draw_objects.splice(index, 1); // deletes one entry at snowflakes[index]
+                    }                
                 }
             })
+
+            frameId++;
+//            if((frameId % 50) === 0)
+//                console.log(Matter.Composite.allBodies(world).length);
         }
 
         function renderFrame(timestamp) {

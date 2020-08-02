@@ -3,8 +3,8 @@ const SUN_DIAMETER = 75;
 
 const SNOWFLAKE_MOVEMENT_X = -1;
 const SNOWFLAKE_MOVEMENT_Y = 4;
-const SNOWFLAKE_CREATION_RATE = 10;
-PShape gizzard_croc;
+const SNOWFLAKE_CREATION_RATE = 5;
+PShape gizzard_croc = loadShape("TestImage.svg");
 
 // Global variables
 let frame = 0;
@@ -20,7 +20,7 @@ let dark_sun = false;
 
 size(MAX_WIDTH, MAX_HEIGHT);
 frameRate(60);
-gizzard_croc= loadShape("TestImage.svg");
+
 
 void ground() {
     // ground
@@ -52,6 +52,34 @@ void face(x, y) {
     ellipse(x, y + 10, 5, 5);
 }
 
+
+void rotated_face(x, y, r) {
+    // Switch to red outlines
+    stroke(255, 0, 0);
+    fill(255, 0, 0);
+
+    let rotated = rotateAroundCenter(-10, -10, r);
+    ellipse(x + rotated.x, y + rotated.y, 5, 5);
+    rotated = rotateAroundCenter(10, -10, r);
+    ellipse(x + rotated.x, y + rotated.y, 5, 5);
+    stroke(0, 0, 0);
+    fill(0, 0, 0);
+    rotated = rotateAroundCenter(0, 10, r);
+    ellipse(x + rotated.x, y + rotated.y, 5, 5);
+}
+
+void rotated_buttons(x, y, r) {
+    stroke(0, 0, 0);
+    fill(0, 0, 0);
+
+    let rotated = rotateAroundCenter(0, -20, r);
+    ellipse(x + rotated.x, y + rotated.y, 5, 5);
+    rotated = rotateAroundCenter(0, 0, r);
+    ellipse(x + rotated.x, y + rotated.y, 5, 5);
+    rotated = rotateAroundCenter(0, 20, r);
+    ellipse(x + rotated.x, y + rotated.y, 5, 5);
+}
+
 void hat(x_center, y_bottom, brim_width, crown_width, crown_height) {
     strokeWeight(3);
     fill(0, 0, 0);
@@ -61,6 +89,7 @@ void hat(x_center, y_bottom, brim_width, crown_width, crown_height) {
 }
 
 void snowman() {
+/*
     // bottom
     fill(255, 255, 255);
     stroke(0, 0, 0);
@@ -76,9 +105,9 @@ void snowman() {
     // top
     fill(255, 255, 255);
     ellipse(200, 120, 75, 75);
+
     face(200, 120);
     hat(200, 100, 100, 60, 40);
-
     // left arm
     strokeWeight(5);
     line(160, 200, 100, 150);
@@ -86,25 +115,40 @@ void snowman() {
     // left arm
     strokeWeight(5);
     line(240, 200, 300, 150);
+*/
 }
 
-void drawSnowflake(x, y) {
-    // This function gets called once for each snowflake,
-    // And the location of the ellipse is *dynamic* based on the position
-    // of each snowflake.
-    fill(255, 255, 255);
+void drawSnowball(obj) {
+//    console.log(obj.position.y);
+    fill(obj.color.fill.r, obj.color.fill.g, obj.color.fill.b);
+    stroke(obj.color.stroke.r, obj.color.stroke.g, obj.color.stroke.b);
     strokeWeight(1);
-    ellipse(x, y, 10, 10);
+    ellipse(obj.position.x, obj.position.y, obj.circleRadius * 2, obj.circleRadius * 2);
+    if(obj.label === 'snowball_face') {
+        rotated_face(obj.position.x, obj.position.y, obj.angle);
+    }
+    if(obj.label === 'snowball_buttons') {
+        rotated_buttons(obj.position.x, obj.position.y, obj.angle);
+    }
 }
 
-void drawOobleck(x, y) {
-    // This function gets called once for each snowflake,
-    // And the location of the ellipse is *dynamic* based on the position
-    // of each snowflake.
-    fill(25, 192, 25);
+void drawQuadrilateral(obj) {
+    fill(obj.color.fill.r, obj.color.fill.g, obj.color.fill.b);
+    stroke(obj.color.stroke.r, obj.color.stroke.g, obj.color.stroke.b);
     strokeWeight(1);
-    ellipse(x, y, 10, 10);
+    quad(obj.vertices[0].x, obj.vertices[0].y,
+        obj.vertices[1].x, obj.vertices[1].y, 
+        obj.vertices[2].x,  obj.vertices[2].y,
+        obj.vertices[3].x,  obj.vertices[3].y);
 }
+
+void drawHat(obj) {
+    let bodies = obj.bodies;
+    for(int i = 0; i < bodies.length; i++) {
+        drawQuadrilateral(bodies[i]);
+    }
+}
+
 
 // This is the timer that calculates where the sun should be, based on how long the program has been running.
 void calculate_sun_position() {
@@ -116,6 +160,72 @@ void calculate_sun_position() {
     // And if the sun runs off the right side of the scene, move it back to the left side.
     if(sun_x > MAX_WIDTH)
         sun_x = 0;
+}
+
+const GROUND_THICKNESS = 20;
+let engineObjects = [
+    {type:"snowball", x: 200, r: 30, options: {label: "snowball_face"}},
+    {type:"snowball", x: 200, r: 40, options: {label: "snowball_buttons"}},
+    {type:"snowball", x: 200, r: 60},
+    {
+        type: "rectangle", 
+            x: MAX_WIDTH / 2, y: MAX_HEIGHT - GROUND_THICKNESS / 2, 
+            width: MAX_WIDTH, height: GROUND_THICKNESS, 
+            options: {
+                label: "ground",
+                isStatic: false,
+                color: {
+                    fill: {r: 255, g: 0, b: 0},
+                    stroke: {r: 255, g: 0, b: 0}
+                }
+            }
+    },
+/*
+    {
+        type: "rectangle",
+            width: 50, height: 50, options: {label: "ground", color: {fill: {r: 0, g: 255, b: 0}, stroke: {r: 0, g: 255, b: 0}}}
+    }
+    {type: "hat", x: 200, brimwidth: 100, crownwidth: 60, crownheight: 40}
+*/
+];
+
+void engineObjCreate() {
+
+    let groundThickness = 20;
+    createRectangle(MAX_WIDTH / 2, MAX_HEIGHT - groundThickness / 2, 
+                        MAX_WIDTH, groundThickness, {
+                            label: "ground", 
+                            color: {
+                                fill: {r: 255, g:255, b:255},
+                                stroke: {r: 255, g: 255, b: 255}
+                            }
+                        });
+    createSnowball(200, 320, 60);
+    createSnowball(200, 230, 40, {label: "snowball_buttons"});
+    createSnowball(200, 165, 30, {label: "snowball_face"});
+    createHat(200, 145, 100, 60, 40);
+    createRectangle(270, 190, 80, 5, {
+        label: "arm",
+        isSleeping: true,
+        density: 1.0,
+        friction: 0.9,
+        angle: -0.7,
+        color: {
+            fill: {r: 0, g: 0, b: 0},
+            stroke: {r: 0, g: 0, b: 0}
+        }
+    });
+    createRectangle(130, 190, -80, 5, {
+        label: "arm",
+        isSleeping: true,
+        friction: 0.9,
+        density: 1.0,
+        angle: 0.7,
+        color: {
+            fill: {r: 0, g: 0, b: 0},
+            stroke: {r: 0, g: 0, b: 0}
+        }
+    });
 }
 
 
@@ -131,11 +241,9 @@ void calculate_sun_position() {
 void draw() {
     frame = frame + 1;
 
-    // This is the `modulo` operator, which means the remainder of a long divison.
-    // So this part basically means:
-    // "if the frame is a multiple of 10, create a snowflake"
-    if (frame % SNOWFLAKE_CREATION_RATE === 0) {
-        createSnowflake(Math.random() * MAX_WIDTH);
+    // First frame - create objects that are in the physics engine
+    if(frame == 2) {
+        engineObjCreate();
     }
 
     calculate_sun_position();
@@ -150,15 +258,26 @@ void draw() {
     // will cover up the sun, so it looks like the sun is behind the snowman.
     sun(sun_x, sun_y);
     if(dark_sun)
-        shape(gizzard_croc, sun_x - SUN_DIAMETER / 2, sun_y - SUN_DIAMETER / 2, 80, 80);
+        shape(gizzard_croc, sun_x - SUN_DIAMETER / 2 + 2, sun_y - SUN_DIAMETER / 7, 70, 25);
 
     snowman();
 
-    // Draw all of the snowflakes
-    if(typeof(draw_objects.snowflakes) !== 'undefined') {
-        let flakes = draw_objects.snowflakes;
-        for (int i = 0; i < flakes.length; i++) {
-            drawSnowflake(flakes[i].position.x, flakes[i].position.y);
+    if(typeof(draw_objects) !== 'undefined') {
+        for (int i = 0; i < draw_objects.length; i++) {
+            switch(draw_objects[i].label) {
+            case "snowball":
+            case "snowball_face":
+            case "snowball_buttons":
+                drawSnowball(draw_objects[i]);
+                break;
+            case "ground":
+            case "arm":
+                drawQuadrilateral(draw_objects[i]);
+                break;
+            case "hat":
+                drawHat(draw_objects[i]);
+                break;
+            }
         }
     }
 }
@@ -172,6 +291,8 @@ void mousePressed() {
         // Toggle dark sun mode
         dark_sun = !dark_sun;
         sun_color.g = dark_sun ? 0 : 255;   // If the sun is dark, set the Green component of the color to zero
+
+        fallApart(world);
     }
 }
 
